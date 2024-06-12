@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Spring Boot Project Generator</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+<div class="container">
+    <h1>Spring Boot Project Generator</h1>
+    <form id="projectForm">
+        <div>
+            <label for="groupId">Group ID:</label>
+            <input type="text" id="groupId" name="groupId" required>
+        </div>
+        <div>
+            <label for="artifactId">Artifact ID:</label>
+            <input type="text" id="artifactId" name="artifactId" required>
+        </div>
+        <div>
+            <label for="version">Version:</label>
+            <input type="text" id="version" name="version" value="1.0.0" required>
+        </div>
+        <div>
+            <label for="packaging">Packaging:</label>
+            <select id="packaging" name="packaging">
+                <option value="jar">JAR</option>
+                <option value="war">WAR</option>
+            </select>
+        </div>
+        <div>
+            <label for="dependencies">Dependencies (comma-separated):</label>
+            <input type="text" id="dependencies" name="dependencies">
+        </div>
+        <div>
+            <button type="button" onclick="submitForm()">Generate Project</button>
+        </div>
+    </form>
+</div>
+
+<script>
+        function submitForm() {
+            const form = document.getElementById('projectForm');
+            const formData = new FormData(form);
+            const jsonData = {};
+            formData.forEach((value, key) => {
+                jsonData[key] = value;
+            });
+
+            fetch('/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(jsonData)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                }
+                throw new Error('Network response was not ok.');
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = jsonData.artifactId + '.zip';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(error => console.error('There was a problem with the fetch operation:', error));
+        }
+    </script>
+</body>
+</html>
